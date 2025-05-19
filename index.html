@@ -368,6 +368,7 @@
       </button>
 
       <!-- Results (Original - Optional, can be removed if only receipt is needed) -->
+      <!-- Keeping this div, but its content is commented out in JS -->
       <div id="resultSection" class="mt-6 space-y-6"></div>
     </div>
   </main>
@@ -462,7 +463,9 @@
 
   <!-- JavaScript -->
   <script>
-    // Tamil number conversion functions (Used for the original results section)
+    // Tamil number conversion functions (These functions are present but not currently used
+    // to populate the *receipt* details, which use standard number formatting.
+    // They were used for the *original* result section which is commented out.)
     const U = ["","ஒன்று","இரண்டு","மூன்று","நான்கு","ஐந்து","ஆறு","ஏழு","எட்டு","ஒன்பது"];
     const T = ["","பத்து","இருபது","முப்பது","நாற்பது","ஐம்பது","அறுபது","எழுபது","எண்பது","தொண்ணூறு"];
 
@@ -477,39 +480,40 @@
      // Fixed issue with bT where it returned "ஒன்றுநூறு" instead of "நூறு" for 100
      // Also added space between number and "நூறு" like "இரண்டு நூறு"
     function bT(n){
-      const h = Math.floor(n / 100), r = n % 100;
+      if (n === 100) return "நூறு"; // Handle exactly 100
+      if (n < 100) return bH(n); // Use bH for numbers less than 100
+
+      const h = Math.floor(n / 100);
+      const r = n % 100;
       let result = "";
       if (h > 0) {
-          if (h === 1 && r === 0) return "நூறு"; // Handle exactly 100
           result += U[h];
           if (h > 1) result += " "; // Add space for "இரண்டு நூறு", "மூன்று நூறு" etc.
           result += "நூறு";
           if (r > 0) result += " "; // Add space if there's a remainder
       }
       result += bH(r);
-      return result;
+      return result.trim(); // Trim trailing space
     }
 
 
      function taWords(num){
-        if (isNaN(num)) return "தவறான பதிவு";
+        if (isNaN(num) || num < 0) return "தவறான பதிவு"; // Combine NaN and negative check
         num = parseFloat(num.toFixed(2)); // Ensure two decimal places and convert back to number
-        if (num < 0) return "பூஜ்யத்திற்கும் குறைவானது";
+
+        if (num === 0) return "பூஜ்யம்";
 
         const numStr = num.toFixed(2);
         const [integerPart, decimalPart] = numStr.split('.');
         const intNum = parseInt(integerPart, 10);
         const decNum = parseInt(decimalPart, 10);
 
-        if (intNum === 0 && decNum === 0) return "பூஜ்யம்";
-
         let words = "";
 
         const crore = Math.floor(intNum / 10000000);
         const lakh = Math.floor((intNum % 10000000) / 100000);
         const thousand = Math.floor((intNum % 100000) / 1000);
-        const hundred = Math.floor((intNum % 1000) / 100);
-        const remainder = intNum % 100;
+        const remainder1000 = intNum % 1000;
 
         if (crore > 0) {
             words += `${bT(crore)} கோடி `;
@@ -520,42 +524,54 @@
         if (thousand > 0) {
             words += `${bT(thousand)} ஆயிரம் `;
         }
-         // Handle hundreds and the remainder correctly
-        if (intNum % 1000 > 0 || intNum === 0) { // If the last 3 digits are non-zero or the whole number is 0
-             if (hundred > 0) {
-                 words += `${U[hundred]} நூறு `;
-             }
-             if (remainder > 0) {
-                 words += `${bH(remainder)} `;
-             } else if (intNum % 1000 > 0 && hundred === 0 && remainder === 0) {
-                 // This case handles numbers like 1000, 2000 etc where remainder part is zero after thousands
-                 // Do nothing, thousands already handled.
-             } else if (intNum === 0 && hundred === 0 && remainder === 0 && words.length > 0) {
-                  // If intNum is 0 and parts are 0, and there were higher units, do nothing
-             } else if (intNum > 0 && hundred === 0 && remainder === 0) {
-                 // If intNum is > 0 and ends exactly in 000 (e.g., 12000), the thousands part is already handled.
-                 // If intNum ends in 00 but is not exactly a thousand (e.g. 12400), hundred is handled.
-                 // If intNum is a multiple of 100 but not 1000 (e.g. 12300), the hundred is handled.
-                 // The original bT(r) logic was slightly off for exact hundreds/thousands.
-                  // Let's refine: if there's a remainder after thousands (intNum % 1000), handle it.
-                  const lastThree = intNum % 1000;
-                  if (lastThree > 0) {
-                       if (Math.floor(lastThree / 100) > 0) {
-                            words += `${U[Math.floor(lastThree / 100)]} நூறு `;
-                       }
-                       if (lastThree % 100 > 0) {
-                            words += `${bH(lastThree % 100)} `;
-                       } else if (Math.floor(lastThree / 100) > 0 && lastThree % 100 === 0) {
-                            // Handled by the U[hundred] நூறு above
-                       }
-                  }
-             } else if (intNum === 0 && decNum === 0) {
-                 // Already handled at the beginning
-             } else if (intNum > 0 && intNum % 1000 === 0 && words.length > 0) {
-                 // Exact thousands, lakhs, crores already have words, do nothing
-             } else if (intNum > 0 && intNum < 100) {
-                 // Numbers less than 100
-                  words += `${bH(intNum)} `;
-             } else if (intNum > 0 && intNum % 100 === 0 && intNum % 1000 !== 0) {
-                 // Exact hundreds like 200, 300 (not 100, which is special, or 1000+)
-                  words += `${U[intNu
+        // Handle the last three digits (hundreds, tens, units)
+        if (remainder1000 > 0) {
+            words += `${bT(remainder1000)} `; // Use bT which handles up to 999
+        } else if (intNum === 0 && decNum > 0) {
+             // If only decimal part exists, don't add empty space before paisa
+        } else if (intNum > 0 && remainder1000 === 0 && (crore > 0 || lakh > 0 || thousand > 0)) {
+             // If intNum ends in 000 and higher units exist, no need to add anything for remainder1000
+        } else if (intNum > 0 && remainder1000 === 0 && !(crore > 0 || lakh > 0 || thousand > 0)) {
+             // If intNum is positive but less than 1000 and ends in 000, should not happen
+        }
+
+
+       words = words.trim(); // Remove trailing space
+
+       if (intNum > 0) {
+          words += " ரூபாய்";
+       } else if (intNum === 0 && decNum === 0) {
+           return "பூஜ்யம்"; // Should be caught earlier, but as fallback
+       }
+
+
+      if (decNum > 0) {
+          const paisaText = bH(decNum); // bH handles 0-99
+          if (words) { // If there are already words (for integer part)
+              words += ` மற்றும் ${paisaText} பைசா`;
+          } else { // Case where intNum is 0 and only paisa exists (e.g., 0.50)
+               words = `${paisaText} பைசா`;
+          }
+      } else if (intNum > 0 && decNum === 0) {
+           // If there's an integer part but no decimal, ensure " ரூபாய்" is added if not already.
+           if (!words.includes(" ரூபாய்")) {
+               words += " ரூபாய்";
+           }
+      }
+
+      return words.trim(); // Trim again just in case
+    }
+
+
+    // Get element references
+    const amountInput = document.getElementById('amount');
+    const rateInput = document.getElementById('rate');
+    const monthsInput = document.getElementById('months');
+    // resultSection is still referenced, but its content is commented out in calculate()
+    const resultSection = document.getElementById('resultSection');
+    const receiptContainerWrapper = document.getElementById('receiptContainerWrapper');
+    const receiptContainer = document.querySelector('.receipt-container'); // Reference the container
+
+    // Get receipt element references
+    const receiptDateTime = document.getElementById('receiptDateTime');
+    const receiptAmountValue = document
