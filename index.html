@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thinklator ‑ மாத வட்டி கணிப்பான்</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Pacifico&family=Mukta+Malar:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: 'Mukta Malar', sans-serif;
+    }
+
+    .brand-text {
+      font-family: 'Abril Fatface', cursive;
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: white;
+      /* Adjusted ml to center better with the logo */
+      margin-left: 0px; /* Remove ml to let flex handle spacing or set explicitly */
+      display: inline-block; /* Added for better alignment with logo */
+    }
+
+    /* Original shimmer for the Calculate button */
+    .shimmer {
+      background: linear-gradient(90deg, #4ade80, #22c55e, #4ade80);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite; /* Infinite animation */
+      color: #fff;
+      /* Added to ensure text visibility */
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes shimmer { /* Original shimmer animation */
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+     /* New keyframes for download button hover effect */
+    @keyframes shimmer-effect-download {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+
+    .footer-animate {
+      border-top: 2px solid;
+      border-image: linear-gradient(to right, #16a34a, #86efac);
+      border-image-slice: 1;
+    }
+
+    .nav-with-slide {
+      position: relative;
+      overflow: hidden;
+      background-color: #40d777;
+      display: flex; /* Use flexbox for alignment */
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem; /* Adjust padding as needed */
+    }
+
+    .nav-with-slide::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 150px;
+      background-color: #bbf7d1;
+      z-index: 0;
+      clip-path: polygon(0 0, 90% 0, 65% 100%, 0 100%);
+    }
+
+    .brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      /* Removed justify-content as parent handles it */
+    }
+
+    .brand img {
+      height: 40px; /* Adjusted logo size for better fit */
+      margin-left: 10px;
+      margin-right: 8px;
+    }
+
+    .nav-content {
+      position: relative;
+      z-index: 1;
+      color: white;
+    }
+
+    /* --- Receipt CSS Styles Start --- */
+    /* Apply Abril Fatface specifically to English text elements */
+    .english-font {
+        font-family: 'Abril Fatface', cursive;
+    }
+
+    #receiptContainerWrapper {
+        /* Styles for the container holding the receipt and print button */
+        /* Initially hidden */
+        display: none; /* Correct initial state */
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        margin-top: 2rem;
+        margin-bottom: 20px;
+        width: 100%; /* Allow wrapper to take full width */
+    }
+
+    .receipt-container {
+        background-color: #fff; /* Main container is white */
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 0 20px;
+        max-width: 400px;
+        width: 95%; /* Adjust width for responsiveness */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow like the output box */
+        margin-bottom: 20px; /* Space between receipt and button */
+        overflow: hidden;
+    }
+
+    /* Specific border radius for the top green section */
+     .receipt-container > .green-section-bg:first-child {
+         border-top-left-radius: 10px;
+         border-top-right-radius: 10px;
+         border-bottom-left-radius: 0; /* Ensure bottom is square */
+         border-bottom-right-radius: 0; /* Ensure bottom is square */
+     }
+
+     /* Specific border radius for the bottom green section */
+      .receipt-container > .green-section-bg:last-child {
+         border-top-left-radius: 0; /* Ensure top is square */
+         border-top-right-radius: 0; /* Ensure top is square */
+         border-bottom-left-radius: 10px;
+         border-bottom-right-radius: 10px;
+     }
+
+     /* Reapply green background style */
+    .green-section-bg {
+         background-color: #bbf7d1;
+         padding: 10px 20px;
+         margin: 0 -20px; /* Extend background to edge of receipt-container */
+         /* Remove border radius from here to apply specifically to first/last children */
+         border-radius: 0;
+    }
+
+
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 0;
+        padding-bottom: 5px;
+    }
+
+    .brand-receipt {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 5px;
+    }
+
+    .brand-logo {
+        width: 30px; /* Adjusted logo size in receipt */
+        height: auto;
+        margin-right: 8px;
+    }
+
+    .brand-receipt h2 {
+        font-size: 1.3em; /* Adjusted size in receipt */
+        margin: 0;
+        color: #29ca64;
+        font-family: 'Abril Fatface', cursive;
+    }
+
+    .receipt-title {
+        font-size: 0.9em; /* Adjusted size */
+        color: #29ca64;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .date-time-section {
+        text-align: center;
+        margin-bottom: 0;
+        padding-bottom: 10px;
+    }
+
+    .date-time {
+        font-size: 0.8em; /* Adjusted size */
+        color: #4CAF50;
+        margin: 0;
+    }
+
+    .dashed-separator {
+       border-bottom: 1px dashed #ccc;
+       margin: 10px auto 10px auto;
+       width: 100%;
+    }
+
+    .section {
+        margin-bottom: 15px; /* Reduced margin */
+        padding-top: 5px; /* Reduced padding */
+    }
+
+    .section-title {
+        font-size: 1em; /* Adjusted size */
+        font-weight: bold;
+        margin-top: 0;
+        margin-bottom: 8px; /* Adjusted margin */
+        padding-bottom: 4px; /* Adjusted padding */
+        border-bottom: 1px dashed #ccc;
+        color: #2c3440;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px; /* Adjusted margin */
+        font-size: 0.9em; /* Adjusted size */
+    }
+
+    .detail-row .label {
+        color: #2c3440;
+    }
+
+     .detail-row .value {
+        color: #2c3440;
+        text-align: right;
+    }
+
+     .final-amount-row-item {
+         display: flex;
+         justify-content: space-between;
+         margin-bottom: 5px;
+         font-size: 1em; /* Adjusted size */
+         font-weight: bold;
+         color: #4CAF50;
+         padding-top: 8px; /* Adjusted padding */
+         padding-bottom: 4px; /* Adjusted padding */
+     }
+
+      .final-amount-row-item .value {
+         color: #4CAF50;
+      }
+
+    .receipt-footer-content {
+        text-align: center;
+        font-size: 0.75em; /* Adjusted size */
+        color: #29ca64;
+    }
+
+     .receipt-footer-content p {
+         margin: 2px 0; /* Adjusted margin */
+     }
+
+     .receipt-footer-content p:last-child {
+          font-family: 'Abril Fatface', cursive;
+     }
+
+    .download-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* Base green background, keep original for non-hover */
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        overflow: hidden;
+        position: relative;
+        width: 95%; /* Match receipt container width */
+        max-width: 400px; /* Match receipt container max-width */
+        /* Transition for smoother hover color/background changes if not using animation */
+        transition: background-color 0.3s ease;
+         z-index: 1; /* Ensure button is above footer if they overlap */
+    }
+
+     /* Apply shimmer animation on hover/active */
+    .download-button:hover,
+    .download-button:active {
+        animation: shimmer-effect-download 1.5s linear infinite; /* Apply animation on hover/active */
+        /* Use the gradient from the original shimmer */
+        background: linear-gradient(90deg, #bbf7d1, #4ade80, #bbf7d1);
+        background-size: 200% 100%;
+        color: #fff; /* Ensure text stays white during animation */
+    }
+     /* Ensure text stays white when not hovered */
+    .download-button:not(:hover):not(:active) {
+        color: white;
+        /* Reset animation and background-position when not hovered/active */
+        animation: none;
+        background-position: 0% 0;
+        /* Base background-color should be defined */
+        background-color: #4CAF50; /* Explicitly set base color */
+    }
+
+
+    .download-button i {
+        margin-right: 8px;
+        color: inherit; /* Inherit color from button text */
+        font-size: 1em;
+    }
+
+    /* --- CSS Styles End --- */
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-green-50 to-green-100 min-h-screen flex flex-col justify-between text-gray-800">
+
+  <!-- Navigation Bar -->
+  <nav class="nav-with-slide text-white py-3 px-6 shadow-md">
+    <div class="brand">
+      <img src="https://assets.onecompiler.app/3zky9aw9p/43fpymfcg/20250422_195741.png" alt="Thinklator Logo">
+      <span class="brand-text" style="font-family: 'Abril Fatface', cursive;">Thinklator</span>
+    </div>
+    <div class="space-x-4 text-sm sm:text-base nav-content">
+      <!-- Navigation links (optional) -->
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <header class="text-center mt-6 select-none">
+    <h1 class="text-green-800 font-bold text-xl -mt-5" style="font-family: 'Abril Fatface', cursive;">Your Welcome</h1>
+    <p class="text-green-800 font-bold -mt-1">மாத வட்டி கணிப்பான்</p>
+  </header>
+
+  <!-- Calculator -->
+  <main class="flex justify-center mt-8 px-4">
+    <div id="calcCard" class="bg-white p-6 rounded-3xl shadow-md w-full max-w-md space-y-6">
+      <!-- Inputs -->
+      <div class="space-y-5">
+        <div>
+          <label for="amount" class="block text-green-700 font-bold">முதலீடு தொகை (₹)</label>
+          <input id="amount" type="number" placeholder="0"
+            class="w-full border-b-2 border-green-500 focus:outline-none p-2 bg-transparent text-green-900"/>
+        </div>
+        <div>
+          <label for="rate" class="block text-green-700 font-bold">மாத வட்டி விகிதம் (%)</label>
+          <input id="rate" type="number" step="0.01" placeholder="0.0"
+            class="w-full border-b-2 border-green-500 focus:outline-none p-2 bg-transparent text-green-900"/>
+        </div>
+        <div>
+          <label for="months" class="block text-green-700 font-bold">கால அவகாசம் (மாதங்களில்)</label>
+          <input id="months" type="number" placeholder="0"
+            class="w-full border-b-2 border-green-500 focus:outline-none p-2 bg-transparent text-green-900"/>
+        </div>
+      </div>
+
+      <!-- Button -->
+      <button onclick="calculate()" class="shimmer w-full py-3 rounded-xl font-semibold tracking-wide">
+        கணக்கிடு
+      </button>
+
+      <!-- Results (Original - Optional, can be removed if only receipt is needed) -->
+      <div id="resultSection" class="mt-6 space-y-6"></div>
+    </div>
+  </main>
+
+  <!-- Receipt Section (Initially Hidden) -->
+  <div id="receiptContainerWrapper" class="mt-8 flex flex-col items-center">
+    <div class="receipt-container">
+
+        <!-- Top Green Section -->
+        <div class="green-section-bg">
+            <div class="receipt-header">
+                <div class="brand-receipt">
+                    <img src="https://assets.onecompiler.app/3zky9aw9p/43fpymfcg/20250422_195741.png" alt="Thinklator Logo" class="brand-logo">
+                    <h2 class="english-font">Thinklator</h2>
+                </div>
+                <p class="receipt-title">வட்டி கணக்கீடு ரசீது</p>
+            </div>
+
+            <div class="date-time-section">
+                <p class="date-time" id="receiptDateTime">--</p>
+            </div>
+        </div>
+        <div class="dashed-separator"></div>
+
+
+        <!-- Middle Sections (No green background) -->
+        <div class="section">
+            <h3 class="section-title">கணக்கீட்டு விவரங்கள்</h3>
+            <div class="detail-row">
+                <span class="label">முதலீட்டு தொகை:</span>
+                <span class="value" id="receiptAmountValue">--</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">மாத வட்டி விகிதம்:</span>
+                <span class="value" id="receiptRateValue">--</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">கால அவகாசம்:</span>
+                <span class="value" id="receiptMonthsValue">--</span>
+            </div>
+        </div>
+        <div class="dashed-separator"></div>
+
+
+        <div class="section">
+            <h3 class="section-title">முடிவுகள்</h3>
+             <div class="detail-row">
+                <span class="label">மாதாந்திர வட்டி:</span>
+                <span class="value" id="receiptMonthlyInterestValue">--</span>
+            </div>
+             <div class="detail-row">
+                <span class="label">மொத்த வட்டி:</span>
+                <span class="value" id="receiptTotalInterestValue">--</span>
+            </div>
+        </div>
+        <div class="dashed-separator"></div>
+
+         <!-- Final Amount Section -->
+         <div class="section final-amount-section">
+             <div class="final-amount-row-item">
+                 <span class="label">இறுதி தொகை:</span>
+                 <span class="value" id="receiptTotalAmountValue">--</span>
+             </div>
+        </div>
+        <div class="dashed-separator"></div>
+
+        <!-- Footer Section -->
+        <div class="green-section-bg">
+             <div class="receipt-footer-content">
+                 <p>இந்த ரசீது Thinklator மூலம் உருவாக்கப்பட்டது</p>
+                 <p class="english-font">© 2024 Thinklator - உங்கள் நிதி கணக்கீடுகளுக்கான நம்பகமான கருவி</p>
+             </div>
+        </div>
+
+    </div>
+
+    <!-- Download Button -->
+    <button class="download-button py-3 rounded-xl font-semibold tracking-wide" id="downloadPdfBtn">
+         <!-- Download Icon (Font Awesome) -->
+        <i class="fas fa-download"></i>
+         PDF ஆக பதிவிறக்கு
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-green-100 text-green-800 text-center py-3 mt-10 footer-animate">
+    <a href="https://evanjeevan07.github.io/Portfolio/" class="text-green-800 hover:underline">Devloped By 𝙴𝚅 𝚂𝙰𝙽𝙹𝙴𝙴𝚅𝙰𝙽</a>
+  </footer>
+
+  <!-- html2pdf.js library (includes html2canvas and jsPDF) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- JavaScript -->
+  <script>
+    // Tamil number conversion functions (Used for the original results section)
+    const U = ["","ஒன்று","இரண்டு","மூன்று","நான்கு","ஐந்து","ஆறு","ஏழு","எட்டு","ஒன்பது"];
+    const T = ["","பத்து","இருபது","முப்பது","நாற்பது","ஐம்பது","அறுபது","எழுபது","எண்பது","தொண்ணூறு"];
+
+    function bH(n){
+      if(n < 10) return U[n];
+      if(n < 20) return ["","பதினொன்று","பனிரெண்டு","பதிமூன்று","பதினான்கு","பதினைந்து",
+        "பதினாறு","பதினேழு","பதினெட்டு","பத்தொன்பது"][n - 10] || "பத்து";
+      const t = Math.floor(n / 10), u = n % 10;
+      return T[t] + (u ? ` ${U[u]}` : "");
+    }
+
+     // Fixed issue with bT where it returned "ஒன்றுநூறு" instead of "நூறு" for 100
+     // Also added space between number and "நூறு" like "இரண்டு நூறு"
+    function bT(n){
+      const h = Math.floor(n / 100), r = n % 100;
+      let result = "";
+      if (h > 0) {
+          if (h === 1 && r === 0) return "நூறு"; // Handle exactly 100
+          result += U[h];
+          if (h > 1) result += " "; // Add space for "இரண்டு நூறு", "மூன்று நூறு" etc.
+          result += "நூறு";
+          if (r > 0) result += " "; // Add space if there's a remainder
+      }
+      result += bH(r);
+      return result;
+    }
+
+
+     function taWords(num){
+        if (isNaN(num)) return "தவறான பதிவு";
+        num = parseFloat(num.toFixed(2)); // Ensure two decimal places and convert back to number
+        if (num < 0) return "பூஜ்யத்திற்கும் குறைவானது";
+
+        const numStr = num.toFixed(2);
+        const [integerPart, decimalPart] = numStr.split('.');
+        const intNum = parseInt(integerPart, 10);
+        const decNum = parseInt(decimalPart, 10);
+
+        if (intNum === 0 && decNum === 0) return "பூஜ்யம்";
+
+        let words = "";
+
+        const crore = Math.floor(intNum / 10000000);
+        const lakh = Math.floor((intNum % 10000000) / 100000);
+        const thousand = Math.floor((intNum % 100000) / 1000);
+        const hundred = Math.floor((intNum % 1000) / 100);
+        const remainder = intNum % 100;
+
+        if (crore > 0) {
+            words += `${bT(crore)} கோடி `;
+        }
+        if (lakh > 0) {
+            words += `${bT(lakh)} லட்சம் `;
+        }
+        if (thousand > 0) {
+            words += `${bT(thousand)} ஆயிரம் `;
+        }
+         // Handle hundreds and the remainder correctly
+        if (intNum % 1000 > 0 || intNum === 0) { // If the last 3 digits are non-zero or the whole number is 0
+             if (hundred > 0) {
+                 words += `${U[hundred]} நூறு `;
+             }
+             if (remainder > 0) {
+                 words += `${bH(remainder)} `;
+             } else if (intNum % 1000 > 0 && hundred === 0 && remainder === 0) {
+                 // This case handles numbers like 1000, 2000 etc where remainder part is zero after thousands
+                 // Do nothing, thousands already handled.
+             } else if (intNum === 0 && hundred === 0 && remainder === 0 && words.length > 0) {
+                  // If intNum is 0 and parts are 0, and there were higher units, do nothing
+             } else if (intNum > 0 && hundred === 0 && remainder === 0) {
+                 // If intNum is > 0 and ends exactly in 000 (e.g., 12000), the thousands part is already handled.
+                 // If intNum ends in 00 but is not exactly a thousand (e.g. 12400), hundred is handled.
+                 // If intNum is a multiple of 100 but not 1000 (e.g. 12300), the hundred is handled.
+                 // The original bT(r) logic was slightly off for exact hundreds/thousands.
+                  // Let's refine: if there's a remainder after thousands (intNum % 1000), handle it.
+                  const lastThree = intNum % 1000;
+                  if (lastThree > 0) {
+                       if (Math.floor(lastThree / 100) > 0) {
+                            words += `${U[Math.floor(lastThree / 100)]} நூறு `;
+                       }
+                       if (lastThree % 100 > 0) {
+                            words += `${bH(lastThree % 100)} `;
+                       } else if (Math.floor(lastThree / 100) > 0 && lastThree % 100 === 0) {
+                            // Handled by the U[hundred] நூறு above
+                       }
+                  }
+             } else if (intNum === 0 && decNum === 0) {
+                 // Already handled at the beginning
+             } else if (intNum > 0 && intNum % 1000 === 0 && words.length > 0) {
+                 // Exact thousands, lakhs, crores already have words, do nothing
+             } else if (intNum > 0 && intNum < 100) {
+                 // Numbers less than 100
+                  words += `${bH(intNum)} `;
+             } else if (intNum > 0 && intNum % 100 === 0 && intNum % 1000 !== 0) {
+                 // Exact hundreds like 200, 300 (not 100, which is special, or 1000+)
+                  words += `${U[intNum/100]} நூறு `;
+             } else if (intNum === 0 && words.length === 0 && decNum === 0) {
+                 words = "பூஜ்யம் "; // Explicitly handle 0
+             }
+        }
+
+
+       words = words.trim(); // Remove trailing space
+
+       if (intNum > 0) {
+          words += " ரூபாய்";
+       } else if (intNum === 0 && decNum > 0) {
+           // No "ரூபாய்" needed yet if only paisa
+       } else if (intNum === 0 && decNum === 0) {
+           return "பூஜ்யம்"; // Return "பூஜ்யம்" directly if both are 0
+       }
+
+
+      if (decNum > 0) {
+          const paisaText = bH(decNum);
+          if (words && intNum > 0) {
+              words += ` மற்றும் ${paisaText} பைசா`;
+          } else if (intNum === 0) { // Case where only paisa exists (e.g., 0.50)
+               words = `${paisaText} பைசா`;
+          } else { // Should not happen based on logic, but as fallback
+               words += ` மற்றும் ${paisaText} பைசா`;
+          }
+      } else if (intNum > 0 && decNum === 0) {
+           // If there's an integer part but no decimal, ensure " ரூபாய்" is added if not already.
+           if (!words.includes(" ரூபாய்")) {
+               words += " ரூபாய்";
+           }
+      }
+
+      return words.trim(); // Trim again just in case
+    }
+
+
+    // Get element references
+    const amountInput = document.getElementById('amount');
+    const rateInput = document.getElementById('rate');
+    const monthsInput = document.getElementById('months');
+    const resultSection = document.getElementById('resultSection');
+    const receiptContainerWrapper = document.getElementById('receiptContainerWrapper');
+    const receiptContainer = document.querySelector('.receipt-container'); // Reference the container
+
+    // Get receipt element references
+    const receiptDateTime = document.getElementById('receiptDateTime');
+    const receiptAmountValue = document.getElementById('receiptAmountValue');
+    const receiptRateValue = document.getElementById('receiptRateValue');
+    const receiptMonthsValue = document.getElementById('receiptMonthsValue');
+    const receiptMonthlyInterestValue = document.getElementById('receiptMonthlyInterestValue');
+    const receiptTotalInterestValue = document.getElementById('receiptTotalInterestValue');
+    const receiptTotalAmountValue = document.getElementById('receiptTotalAmountValue');
+
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+
+
+    function calculate(){
+      const amount = parseFloat(amountInput.value); // Use parseFloat
+      const rate = parseFloat(rateInput.value);     // Use parseFloat
+      const months = parseInt(monthsInput.value);   // Use parseInt
+
+      // Basic validation
+      if (isNaN(amount) || amount < 0 || isNaN(rate) || rate < 0 || isNaN(months) || months <= 0) {
+          alert("தயவு செய்து சரியான எண் மதிப்புகளை உள்ளிடவும்! (முதலீடு, வட்டி விகிதம், கால அவகாசம்)");
+          // Hide results and receipt if inputs are invalid
+          resultSection.innerHTML = '';
+          receiptContainerWrapper.style.display = 'none'; // Keep hidden if invalid
+          return;
+      }
+
+      // Clear previous results before calculating and showing new ones
+      resultSection.innerHTML = '';
+      receiptContainerWrapper.style.display = 'none'; // Hide receipt while calculating
+
+      const mi = (amount * rate) / 100; // Monthly Interest
+      const ti = mi * months; // Total Interest
+      const total = amount + ti; // Total Amount
+
+      const items = [
+        { label: "முதலீடு", value: amount },
+        { label: "மாதாந்திர வட்டி", value: mi },
+        { label: "மொத்த வட்டி", value: ti },
+        { label: "மொத்த தொகை", value: total }
+      ];
+
+      // --- Update Original Results Section (Optional) ---
+      // You can remove this section if you only want the receipt output.
+      const numberSection = items.map(item => `
+        <div class="flex justify-between border-b border-green-300 pb-1">
+          <span>${item.label}:</span>
+          <span class="text-right">₹${item.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+      `).join("");
+
+       // Using Tamil locale for formatting numbers
+      const tamilSection = items.map(item => `
+        <div class="flex justify-between border-b border-green-300 pb-1">
+          <span>${item.label}:</span>
+          <span class="text-right">${taWords(item.value)}</span>
+        </div>
+      `).join("");
+
+      resultSection.innerHTML = `
+        <div id="numberOutputBox" class="bg-green-200 p-4 rounded-xl text-green-900 shadow space-y-3 border border-green-400">
+          <div class="text-xl font-bold text-center mb-1 border-b border-green-500 pb-1">எண்கள்</div>
+          ${numberSection}
+        </div>
+        <div id="tamilOutputBox" class="bg-green-200 p-4 rounded-xl text-green-900 shadow space-y-3 border border-green-400">
+          <div class="text-xl font-bold text-center mb-1 border-b border-green-500 pb-1">தமிழில்</div>
+          ${tamilSection}
+        </div>
+      `;
+      // --- End of Original Results Section ---
+
+
+      // --- Populate and Show Receipt ---
+
+      // Get current date and time in Tamil locale
+      const now = new Date();
+      // Using 'en-IN' for standard Indian number formatting in date/time, 'ta-LK' or 'ta-IN' might format date parts in Tamil
+      // Let's stick to a standard numeric format for clarity, but use Tamil locale where appropriate.
+      // For receipt, showing exact number and time might be better than Tamil words.
+      const dateTimeOptions = {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true // Use 12-hour format with AM/PM
+        // timeZone: 'Asia/Kolkata' // Specify a time zone if needed, otherwise browser's default
+      };
+       // Format date and time using a locale that understands Tamil numbers for the date parts if browser supports,
+       // or just a standard format. 'ta-IN' or 'ta-LK' are good candidates.
+       // If direct Tamil formatting is inconsistent, fall back to en-GB or en-IN and maybe manually add "GMT+..."
+      let dateTimeString;
+       try {
+            // Attempt Tamil locale formatting (might vary by browser support)
+           dateTimeString = now.toLocaleString('ta-IN', dateTimeOptions);
+       } catch (e) {
+            // Fallback to a standard English format if Tamil locale fails
+           console.warn("Tamil locale for date/time formatting failed, using en-IN fallback:", e);
+           dateTimeString = now.toLocaleString('en-IN', dateTimeOptions);
+       }
+
+
+      receiptDateTime.textContent = dateTimeString;
+      receiptAmountValue.textContent = `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      receiptRateValue.textContent = `${rate}%`;
+      receiptMonthsValue.textContent = `${months} மாதங்கள்`;
+      receiptMonthlyInterestValue.textContent = `₹${mi.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      receiptTotalInterestValue.textContent = `₹${ti.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      receiptTotalAmountValue.textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; // Use total here
+
+      // Make the receipt section visible
+      receiptContainerWrapper.style.display = 'flex'; // Use flex because its CSS is set to flex-direction: column
+
+      // Scroll to the receipt section after calculation
+      receiptContainerWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // --- End of Populate and Show Receipt ---
+
+    } // End of calculate function
+
+
+    // --- PDF Download Functionality ---
+    downloadPdfBtn.addEventListener('click', function() {
+      // Ensure the container is visible before attempting to capture
+      // The calculate() function should have already made it visible,
+      // but adding this check is a safeguard, although html2pdf might still fail
+      // if the element was initially hidden. The main fix is in calculate().
+
+      const element = document.querySelector('.receipt-container'); // Target the receipt div
+
+      if (!element) {
+           alert("ரசீது பகுதி கிடைக்கவில்லை.");
+           return;
+      }
+
+      // Use html2pdf to generate the PDF
+      html2pdf()
+        .from(element)
+        .set({
+          margin: [10, 10, 10, 10], // Top, Left, Bottom, Right margin in mm
+          filename: 'thinklator_receipt.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+             scale: 2, // Increased scale for better resolution
+             logging: true,
+             letterRendering: true,
+             useCORS: true // Important for images from external URLs
+           },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .save();
+    });
+    // --- End of PDF Download Functionality ---
+
+
+    // Add event listeners to input fields to enable calculation on Enter key press
+    amountInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent form submission if inputs were inside a form
+            calculate();
+        }
+    });
+     rateInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            calculate();
+        }
+    });
+     monthsInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            calculate();
+        }
+    });
+
+
+  </script>
+</body>
+</html>
